@@ -7,6 +7,7 @@ var player_rot = 0.0;
 
 var object_list = [];
 onready var obj_viewcone = load("res://assets/scenes/object_viewcone.scn");
+onready var obj_mark = load("res://assets/scenes/object_mark.scn");
 
 func _ready():
 	set_process(true);
@@ -30,12 +31,17 @@ func _process(delta):
 	var render = vp.get_render_target_texture();
 	get_node("overview").set_texture(render);
 
-func add_object(obj):
+func add_object(obj, mark = false):
 	if obj == null || is_available(obj) != null:
 		return;
 	
 	object_list.append(obj);
-	var inst = obj_viewcone.instance();
+	var inst;
+	if mark:
+		inst = obj_mark.instance();
+	else:
+		inst = obj_viewcone.instance();
+	
 	inst.set_name(str("object_", obj.get_name()));
 	inst.set_pos(Vector2(obj.get_global_transform().origin.x, obj.get_global_transform().origin.z)*SCALE);
 	inst.set_rot(obj.get_rotation().y);
