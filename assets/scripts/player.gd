@@ -34,8 +34,6 @@ func _ready():
 	
 	cam.add_collision_exception(self);
 	cam.cam_radius = 2.5;
-	cam.cam_focus = Vector3(0,0.25,0);
-	cam.cam_pitch_minmax = Vector2(80, -60);
 	cam.cam_view_sensitivity = view_sensitivity;
 	cam.cam_smooth_movement = true;
 	
@@ -71,7 +69,7 @@ func _process(delta):
 	
 	var overview_map = get_node("/root/main/gui/map_overview");
 	overview_map.player_pos = Vector2(get_global_transform().origin.x, get_global_transform().origin.z);
-	overview_map.player_rot = deg2rad(cam.cam_yaw);
+	overview_map.player_rot = deg2rad(cam.cam_cyaw);
 
 func _fixed_process(delta):
 	check_movement(delta);
@@ -177,11 +175,6 @@ func check_movement(delta):
 		on_floor = false;
 
 func player_on_fixedprocess(delta):
-	if !focus_mode:
-		cam.cam_target = get_global_transform().origin + Vector3(0, 2.25, 0);
-	else:
-		cam.cam_target = get_global_transform().origin + Vector3(0, 2.25, 0);
-	
 	if Input.is_key_pressed(KEY_SHIFT) && is_moving && !focus_mode:
 		move_speed = max(min(move_speed+(4*delta),walk_speed*2.0),walk_speed);
 	else:
@@ -219,7 +212,7 @@ func player_on_fixedprocess(delta):
 		set_anim("default");
 
 func set_anim(name, speed = 1.0):
-	var animplayer = get_node("body/char 2/AnimationPlayer");
+	var animplayer = get_node("body/char/AnimationPlayer");
 	animplayer.set_speed(speed);
 	var current = animplayer.get_current_animation();
 	if current != name:

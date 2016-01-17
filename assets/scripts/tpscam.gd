@@ -7,21 +7,23 @@ var cam_cyaw = 0.0;
 var cam_currentradius = 2.0;
 var cam_radius = 2.0;
 var cam_pos = Vector3();
-var cam_target = Vector3();
-var cam_focus = Vector3();
 var cam_ray_result = {};
 var cam_smooth_movement = true;
 var cam_fov = 60.0;
 var cam_view_sensitivity = 0.3;
 var cam_smooth_lerp = 10;
-var cam_pitch_minmax = Vector2(80, -40);
+var cam_pitch_minmax = Vector2(90, -90);
 
 var is_enabled = false;
 var collision_exception = [];
-var cam = null;
+
+export(NodePath) var cam;
+export(NodePath) var pivot;
 
 func _ready():
-	cam = get_node("Camera");
+	cam = get_node(cam);
+	pivot = get_node(pivot);
+	
 	cam_fov = cam.get_fov();
 
 func set_enabled(enabled):
@@ -82,8 +84,7 @@ func _process(delta):
 	cam_update();
 
 func cam_update():
-	cam_pos = Vector3();
-	cam_pos += cam_target;
+	cam_pos = pivot.get_global_transform().origin;
 	
 	if cam_smooth_movement:
 		cam_pos.x += cam_currentradius * sin(deg2rad(cam_cyaw)) * cos(deg2rad(cam_cpitch));
@@ -94,16 +95,17 @@ func cam_update():
 		cam_pos.y += cam_currentradius * sin(deg2rad(cam_pitch));
 		cam_pos.z += cam_currentradius * cos(deg2rad(cam_yaw)) * cos(deg2rad(cam_pitch));
 	
-	cam.set_global_transform(Transform());
-	
 	var pos = Vector3();
 	
 	if cam_ray_result.size() != 0:
-		pos = cam_ray_result["position"];
+		var a = (cam_ray_result.position-pivot.get_global_transform().origin).normalized();
+		var b = pivot.get_global_transform().origin.distance_to(cam_ray_result.position);
+		#pos = cam_ray_result.position;
+		pos = pivot.get_global_transform().origin+a*max(b-0.5, 0);
 	else:
 		pos = cam_pos;
 	
-	cam.look_at_from_pos(pos, cam_target+cam_focus, Vector3(0,1,0));
+	cam.look_at_from_pos(pos, pivot.get_global_transform().origin, Vector3(0,1,0));
 
 func _fixed_process(delta):
 	if !is_enabled:
@@ -111,4 +113,4 @@ func _fixed_process(delta):
 	
 	var ds = get_world().get_direct_space_state();
 	if ds != null:
-		cam_ray_result = ds.intersect_ray(cam_target, cam_pos, collision_exception);
+		cam_ray_result = ds.intersect_ray(pivot.get_global_transform().origin, cam_pos, collision_exception);
